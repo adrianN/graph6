@@ -14,7 +14,7 @@ unsigned long read_graph6_matrix(Input& in, std::vector<bool>& matrix) {
 	//Read the header
 	if (*in=='>') { //We have the optional >>graph6<< header
 		unsigned char h[] = ">>graph6<<";
-		for(unsigned int i=0; i<(sizeof(h)/sizeof(unsigned char)); ++i) {
+		for(unsigned int i=0; i<(sizeof(h)/sizeof(unsigned char))-1; ++i) {
 			if (h[i] != *in++) {
 				throw std::invalid_argument(
 					"The input is malformed. "
@@ -37,7 +37,7 @@ unsigned long read_graph6_matrix(Input& in, std::vector<bool>& matrix) {
 		}
 		for(unsigned int i =0; i<packets*packet_size; ++i) {
 			unsigned char packet = (*in++) - 63;
-			if(packet<(1<<packet_size)) {
+			if(packet>(1<<packet_size)) {
 				throw std::invalid_argument(
 					"The input is malformed. "
 					"It contains a non-printable ascii-char in the number of nodes encoding.");
@@ -52,13 +52,14 @@ unsigned long read_graph6_matrix(Input& in, std::vector<bool>& matrix) {
 			"The number of nodes is not correctly encoded, the first byte is >126."
 			);
 	}
-
 	//now we parse the matrix
 	unsigned int expected_column_entries = 1;
 	unsigned int read_column_entries = 0;
+	long read = 0;
 	while(true) {
 		unsigned char packet = (*in++) - 63;
-		if(packet<(1<<packet_size)) {
+		read++;
+		if(packet>(1<<packet_size)) {
 			throw std::invalid_argument(
 				"The input is malformed. "
 				"It contains a non-printable ascii-char in the matrix encoding.");
@@ -70,11 +71,10 @@ unsigned long read_graph6_matrix(Input& in, std::vector<bool>& matrix) {
 				read_column_entries = 0;
 				expected_column_entries += 1;
 			}
-			if (expected_column_entries==num_nodes) {
+			if (expected_column_entries>num_nodes) {
 				in++; //skip newline, in case we'll be called again
 				return num_nodes;
 			}
 		}
 	}
-
 }
