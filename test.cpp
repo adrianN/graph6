@@ -1,11 +1,18 @@
 #include "graph6.hpp"
+#include "boost_helper.hpp"
 #include <fstream>
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <stdexcept>
 #include <utility>
+#include <boost/graph/adjacency_list.hpp>
+
 using namespace std;
+
+
+typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS> Graph;
+typedef Graph::vertex_descriptor Vertex;
 
 int main() {
 	ifstream file("./output.g6");
@@ -15,12 +22,10 @@ int main() {
 
 	edge_reader end;
 
-	for(int i=0; i<3; i++) {
-		edge_reader edges(iit);
-		for(; edges!=end; ++edges) {
-			pair<int,int> edge = *edges;
-			cout << edge.first << " " << edge.second << endl;
-		}
+	while(iit!=eos) {
+		Graph g = read_graph6<Graph>(iit);
+		cout << boost::num_vertices(g) << endl;
+		write_graph6(g, boost::edges(g).first, boost::edges(g).second, cout);
 		cout << "==========" << endl;
 	}
 
