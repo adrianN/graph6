@@ -1,21 +1,41 @@
 #ifndef BOOST_HELPER_HPP
 #define BOOST_HELPER_HPP
 
+// #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include "graph6.hpp"
 #include <stdexcept>
 #include <utility>
 #include <iostream>
 #include <cassert>
+#include <memory>
 
 template<typename Graph, typename Input>
-Graph read_graph6(Input& in) {
+std::auto_ptr<Graph> read_graph6(Input& in) {
 	read_graph6_edges<Input> edges(in);
 	read_graph6_edges<Input> last;
-	Graph g(edges, last, edges.num_nodes);
+	std::auto_ptr<Graph> g(new Graph(edges, last, edges.num_nodes));
 	if (*in++ != '\n')
 		throw std::invalid_argument("I expected a newline after this graph, but didn't get any");
 	return g;
+}
+
+template<typename Graph, typename Input>
+void read_graph6(Input& in, Graph& g) {
+	g.clear();
+	read_graph6_edges<Input> edges(in);
+	read_graph6_edges<Input> last;
+	for(unsigned int i=0; i<edges.num_nodes; ++i) {
+		add_vertex(g);
+	}
+	while(edges!=last) {
+		std::pair<int,int> edge = *edges;
+		++edges;
+		add_edge(edge.first, edge.second, g);
+	}
+	if (*in++ != '\n')
+		throw std::invalid_argument("I expected a newline after this graph, but didn't get any");
+
 }
 
 template<typename Graph, typename EdgeIterator, typename Output>

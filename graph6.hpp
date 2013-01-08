@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <cassert>
+#include <cmath>
 
 /*Read a graph6 graph from an input stream. You can call this repeatedly on the same stream
   to get more than one graph, but this only works if the line endings are just one byte long, I think.*/
@@ -190,24 +191,29 @@ void write_graph6(OutputIterator& out, unsigned long n, AdjacencyIterator start,
 	unsigned char byte = 0;
 	int byte_pos = 5;
 	unsigned int bytes_written = 0;
-
+	unsigned int col = 1;
+	unsigned int row = 0;
 	for(; start!=end; ++start) {
 		// std::cout << "\t\n" << (int)byte << " " << byte_pos << std::endl;
 
 		unsigned int bit = *start;
 		byte = byte | (bit << byte_pos--);
 		if (byte_pos < 0) {
+			assert((byte+63) <= 126);
 			out << (unsigned char)(byte+63);
 			bytes_written++;
 			byte = 0;
 			byte_pos = 5;
 		}
 	}
-	if (bytes_written < (int)(n*(n-1)/12)) {
+	if (byte_pos!=5) {
+		assert(byte+63 <= 126);
 		out << (unsigned char)(byte+63);
 		bytes_written++;
+		byte=0;
 	}
-	assert (bytes_written== (int)(n*(n-1)/12));
+	assert(byte==0);
+	assert (bytes_written== (int)ceil(n*(n-1)/12.0f));
 	out << '\n';
 }
 
